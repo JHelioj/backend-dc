@@ -18,14 +18,22 @@ router.get('/', async function (req, res, next) {
 });
 //Rota para busca por palavra-chave
 router.get('/search', async function (req, res, next) {
-    console.log(1)
-    const { palavra_chave, info } = req.query
+    const { palavra_chave } = req.query
     try {
         const userSearched = await db.sequelize.models.produto.findAll({
             where: {
-                descricao: {
-                    [Op.like]: `%${palavra_chave}%`,
-                }
+                [Op.or]: [
+                    {
+                        descricao: {
+                            [Op.iLike]: `%${palavra_chave}%`,
+                        }
+                    },
+                    {
+                        categoria: {
+                            [Op.iLike]: `%${palavra_chave}%`,
+                        }
+                    },
+                ]
             }
         })
         res.status(200).send(userSearched)
@@ -36,6 +44,7 @@ router.get('/search', async function (req, res, next) {
         })
     }
 })
+
 //--------------------------------------
 //Rota para buscar um produto individualmente 
 router.get('/:id', function (req, res, next) {
@@ -95,13 +104,13 @@ router.post('/', async function (req, res, next) {
 // function para atualizar um produto existente. Pode usar a mesma função tanto para PUT quanto para PATCH, sendo a diferença no corpo da request.
 async function update(req, res, next) {
     const { id: produtoId } = req.params
-	const { id, ...rest } = req.body
-	const bichoUpdatado = await db.sequelize.models.produto.update(rest, {
-		where: {
-			id: produtoId
-		}
-	})
-	res.send(bichoUpdatado)
+    const { id, ...rest } = req.body
+    const bichoUpdatado = await db.sequelize.models.produto.update(rest, {
+        where: {
+            id: produtoId
+        }
+    })
+    res.send(bichoUpdatado)
 }
 
 router.put('/:id', update);
